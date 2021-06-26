@@ -1,4 +1,4 @@
-// Examples -> Adafruit_SSD1306 -> ssd1306_128x64_i2c
+
 
 #include <WiFi.h>
 #include <WebServer.h>
@@ -75,6 +75,26 @@ display.display();
 }
 void loop() {
   server.handleClient();
+  read_sensor_and_display();
+}
+
+void read_sensor_and_display() {
+  display.clearDisplay();
+  display.setTextSize(2);
+  temperature = bme.readTemperature();
+  humidity = bme.readHumidity();
+  pressure = (bme.readPressure()) * 0.00750062;
+  display.setCursor(0, 16);
+  
+  display.print(temperature, 1); display.print(" *C");
+  display.setCursor(0, 32);
+  display.print(humidity, 0); display.print(" %");
+  display.setCursor(0, 48);
+  display.print(pressure, 0); display.print(" mm Hg");
+  
+  display.display();
+
+//  delay(3000);
 }
 
 void handle_OnConnect() {
