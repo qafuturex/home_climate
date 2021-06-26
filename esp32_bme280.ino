@@ -1,10 +1,23 @@
+// Examples -> Adafruit_SSD1306 -> ssd1306_128x64_i2c
+
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+//#include <Adafruit_SH1106.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 #define SEALEVELPRESSURE_HPA (1013.25)
+
+
+//Adafruit_SH1106 display(OLED_RESET);
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 Adafruit_BME280 bme;
 
@@ -42,6 +55,22 @@ void setup() {
 
   server.begin();
   Serial.println("HTTP server started");
+
+//  display.begin(SH1106_SWITCHCAPVCC, 0x3C); //here you can don't change to SH1106
+//display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+display.display();
+    delay(100);
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE, BLACK);  // set text color to white and black background
+    display.setTextWrap(false);           // disable text wrap
+    display.print("Start\nservice");
+    display.display();
+    delay(2000);
 
 }
 void loop() {
