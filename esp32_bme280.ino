@@ -1,24 +1,24 @@
-
-
+/************************************************************
+ For this sketch used:
+ SH1106 display https://aliexpress.ru/item/32683094040.html (4Pin-Blue)
+ BME280 sensor: https://aliexpress.ru/item/32862421810.html (BME280 5V)
+ ESP32: https://aliexpress.ru/item/32864722159.html (ESP-32 38PIN)
+ 
+ ***********************************************************/
+#include <splash.h>
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
-//#include <Adafruit_SH1106.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include <Adafruit_SH1106.h>
 
 #define SEALEVELPRESSURE_HPA (1013.25)
-
-
-//Adafruit_SH1106 display(OLED_RESET);
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+//  used https://github.com/nhatuan84/esp32-sh1106-oled
+Adafruit_SH1106 display(21, 22);
 Adafruit_BME280 bme;
 
 float temperature, humidity, pressure, altitude;
@@ -27,7 +27,7 @@ float temperature, humidity, pressure, altitude;
 const char* ssid = "varik36";  // Enter SSID here
 const char* password = "asnaeb36";  //Enter Password here
 
-WebServer server(80);             
+WebServer server(80);
  
 void setup() {
   Serial.begin(115200);
@@ -56,12 +56,8 @@ void setup() {
   server.begin();
   Serial.println("HTTP server started");
 
-//  display.begin(SH1106_SWITCHCAPVCC, 0x3C); //here you can don't change to SH1106
-//display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
-  }
+display.begin(SH1106_SWITCHCAPVCC, 0x3C);
+
 display.display();
     delay(100);
     display.clearDisplay();
@@ -93,8 +89,6 @@ void read_sensor_and_display() {
   display.print(pressure, 0); display.print(" mm Hg");
   
   display.display();
-
-//  delay(3000);
 }
 
 void handle_OnConnect() {
