@@ -3,8 +3,8 @@
  SH1106 display https://aliexpress.ru/item/32683094040.html (4Pin-Blue)
  BME280 sensor: https://aliexpress.ru/item/32862421810.html (BME280 5V)
  ESP32: https://aliexpress.ru/item/32864722159.html (ESP-32 38PIN)
- 
  ***********************************************************/
+
 #include <splash.h>
 #include <WiFi.h>
 #include <WebServer.h>
@@ -15,92 +15,121 @@
 #include <Adafruit_SH1106.h>
 
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+#define SCREEN_ADDRESS 0x3C
 
-//  used https://github.com/nhatuan84/esp32-sh1106-oled
-Adafruit_SH1106 display(21, 22);
-Adafruit_BME280 bme;
+const int red_led = 2;
+const int green_led = 4;
 
 float temperature, humidity, pressure, altitude;
 
-/*Put your SSID & Password*/
+Adafruit_SH1106 display(21, 22); // used https://github.com/nhatuan84/esp32-sh1106-oled for display
+Adafruit_BME280 bme;
+
 const char* ssid = "varik36";  // Enter SSID here
 const char* password = "asnaeb36";  //Enter Password here
 
 WebServer server(80);
- 
+
 void setup() {
+  pinMode (red_led, OUTPUT);
+  pinMode (green_led, OUTPUT);
+  
   Serial.begin(115200);
   delay(100);
-  
-  bme.begin(0x76);   
-
-  Serial.println("Connecting to ");
-  Serial.println(ssid);
 
   //connect to your local wi-fi network
+  Serial.println("Connecting to ");
+  Serial.println(ssid);
   WiFi.begin(ssid, password);
 
   //check wi-fi is connected to wi-fi network
   while (WiFi.status() != WL_CONNECTED) {
+  digitalWrite (red_led, HIGH);
   delay(1000);
   Serial.print(".");
+  digitalWrite (red_led, LOW);
   }
   Serial.println("");
   Serial.println("WiFi connected..!");
   Serial.print("Got IP: ");  Serial.println(WiFi.localIP());
 
   server.on("/", handle_OnConnect);
+  server.on("/test", test); //----------------------------------------------------------------------------
   server.onNotFound(handle_NotFound);
+  //TODO: explore, maybe here can be added endpoint for json response
 
   server.begin();
   Serial.println("HTTP server started");
 
-display.begin(SH1106_SWITCHCAPVCC, 0x3C);
+  //connect to display
+  display.begin(SH1106_SWITCHCAPVCC, SCREEN_ADDRESS);
+  display.display();
+  delay(100);
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE, BLACK);  // set text color to white and black background
+  display.setTextWrap(false);           // disable text wrap
+  display.print("Starting\nservice on\n\n");
+  display.setTextSize(1);
+  display.println(WiFi.localIP());
+  display.display();
+  delay(5000);
 
-display.display();
-    delay(100);
-    display.clearDisplay();
-    display.setTextSize(2);
-    display.setTextColor(WHITE, BLACK);  // set text color to white and black background
-    display.setTextWrap(false);           // disable text wrap
-    display.print("Start\nservice");
+  //connect to sensor
+  if (!bme.begin(0x76)) {
+    Serial.println("Could not find a valid BME280 sensor, check wiring!");
+    digitalWrite (red_led, HIGH);
     display.display();
-    delay(2000);
-
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.print("Could not connect\nBME280");
+    display.display();
+    while (1);
+  }
 }
+
 void loop() {
   server.handleClient();
   read_sensor_and_display();
 }
 
 void read_sensor_and_display() {
-  display.clearDisplay();
-  display.setTextSize(2);
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
   pressure = (bme.readPressure()) * 0.00750062;
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setCursor(24, 0);
+  display.print(WiFi.localIP());
+  display.setTextSize(2);
   display.setCursor(0, 16);
-  
-  display.print(temperature, 1); display.print(" *C");
+  display.print(temperature, 1); display.print(" C");
   display.setCursor(0, 32);
   display.print(humidity, 0); display.print(" %");
   display.setCursor(0, 48);
   display.print(pressure, 0); display.print(" mm Hg");
-  
   display.display();
 }
 
 void handle_OnConnect() {
+  digitalWrite (green_led, HIGH);
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
   pressure = (bme.readPressure()) * 0.00750062;
   altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
-  server.send(200, "text/html", SendHTML(temperature,humidity,pressure,altitude)); 
+  server.send(200, "text/html", SendHTML(temperature,humidity,pressure,altitude));
+  digitalWrite (green_led, LOW);   
 }
 
 void handle_NotFound(){
   server.send(404, "text/plain", "Not found");
+}
+
+void test() {
+  digitalWrite (green_led, HIGH);
+   server.send(200, "application/json", "Test");
+   digitalWrite (green_led, LOW);
 }
 
 String SendHTML(float temperature,float humidity,float pressure,float altitude){
