@@ -54,7 +54,7 @@ void setup() {
   Serial.print("Got IP: ");  Serial.println(WiFi.localIP());
 
   server.on("/", handle_OnConnect);
-  server.on("/test", test); //----------------------------------------------------------------------------
+  server.on("/json", json_response); //----------------------------------------------------------------------------
   server.onNotFound(handle_NotFound);
   //TODO: explore, maybe here can be added endpoint for json response
 
@@ -126,10 +126,20 @@ void handle_NotFound(){
   server.send(404, "text/plain", "Not found");
 }
 
-void test() {
+void json_response() {
   digitalWrite (green_led, HIGH);
-   server.send(200, "application/json", "Test");
-   digitalWrite (green_led, LOW);
+  server.send(200, "application/json", json_body());
+  digitalWrite (green_led, LOW);
+}
+
+String json_body() {
+  String body = "{";
+  body += "\"temperature\": \""+String(bme.readTemperature())+"\",";
+  body += "\"humidity\": \""+String(bme.readHumidity())+"\",";
+  body += "\"pressure\": \""+String((bme.readPressure()) * 0.00750062)+"\",";
+  body += "\"altitude\": \""+String(bme.readAltitude(SEALEVELPRESSURE_HPA))+"\"";
+  body += "}";
+  return body;
 }
 
 String SendHTML(float temperature,float humidity,float pressure,float altitude){
