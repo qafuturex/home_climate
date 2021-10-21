@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS climate(
+id INT AUTO_INCREMENT PRIMARY KEY,
+temperature INT,
+humidity INT,
+pressure INT,
+altitude INT,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
