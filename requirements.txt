@@ -1,7 +1,8 @@
 certifi==2021.10.8
 charset-normalizer==2.0.7
 idna==3.3
-mysql-connector==2.2.9
+mysql-connector-python==8.0.27
 pkg_resources==0.0.0
+protobuf==3.19.0
 requests==2.26.0
 urllib3==1.26.7
