@@ -24,23 +24,20 @@ for x in cursor:
     print(x)
 
 
-def add_record(temperature,
-               humidity,
-               pressure,
-               altitude):
+def add_record(temp, hum, press, alt):
     logging.info('Put record to database')
-    # try:
+    # TODO add retry here too
     cursor.execute(
         f"""
         INSERT INTO climate (`temperature`, `humidity`, `pressure`, `altitude`)
-        VALUES ('{temperature}', '{humidity}', '{pressure}', '{altitude}')
+        VALUES ('{temp}', '{hum}', '{press}', '{alt}')
         """
     )
     db.commit()
 
 
 if __name__ == '__main__':
-    add_record(temperature=temperature,
-               humidity=humidity,
-               pressure=pressure,
-               altitude=altitude)
+    add_record(temp=temperature,
+               hum=humidity,
+               press=pressure,
+               alt=altitude)

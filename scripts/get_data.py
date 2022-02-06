@@ -1,16 +1,25 @@
 import logging
+import time
 from typing import Dict
+
 from requests import get
+from retry import retry
 
 
+logger = logging.getLogger(__name__)
 HOST = "http://192.168.0.178/json"
 
-# TODO: add retry, if request return exception
 
-
+@retry((ConnectionError, OSError), delay=30, tries=5, logger=logger)
 def get_data() -> Dict:
     logging.info('Read data from weather station')
-    raw_data = get(HOST).json()
+    try:
+        response = get(HOST)
+        raw_data = response.json()
+    except Exception as error:
+        print(error)
+        raise
+
     temperature = round(float(raw_data['temperature']), 1)
     humidity = round(float(raw_data['humidity']))
     pressure = round(float(raw_data['pressure']))
